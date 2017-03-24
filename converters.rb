@@ -27,6 +27,8 @@ notes: #{notes}
       else
         ""
       end
+    rescue
+      ""
     end
   end
 end

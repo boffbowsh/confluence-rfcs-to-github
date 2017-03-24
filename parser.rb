@@ -1,9 +1,11 @@
 require 'bundler/setup'
 require 'nokogiri'
 require 'reverse_markdown'
+require 'active_support/core_ext/string/inflections'
 
 require_relative 'confluence_object'
 require_relative 'converters'
+require_relative 'git'
 
 class Parser
   attr_reader :document
@@ -17,7 +19,8 @@ class Parser
   end
 
   def by_id(id)
-    ConfluenceObject.new(
+    @by_id ||= {}
+    @by_id[id] ||= ConfluenceObject.new(
       document.at_xpath(%{//object/id[contains(text(), "#{id}")]}).parent,
       self
     )
@@ -27,26 +30,51 @@ end
 if __FILE__ == $0
   parser = Parser.new
 
+  Git.init
+  Git.add(new_name: '.gitkeep', contents: '', message: 'Initial commit')
+
   pages = parser.by_type('Page')
 
-  documents = [pages.last]
+  documents = pages
     .group_by(&:originalVersionId)
 
-  documents.each do |original_id, pages|
-    puts original_id
-    pages.sort_by! { |page| page.version.to_i }
-    pages.each { |page| puts "#{page.version}: #{page.title}"}
+  documents.each do |original_id, grouped_pages|
+    next if original_id.to_i == 0
+    grouped_pages.sort_by! { |page| page.version.to_i }
 
-    puts "====\n"
+    rfc_match = %r{^RFC.([0-9]+)}.match(grouped_pages.last.title)
+    next unless rfc_match
+    rfc_number = rfc_match[1]
 
-    md = ReverseMarkdown.convert(
-      pages.last.bodyContents.first.body,
-      unknown_tags: :bypass,
-      github_flavored: true,
-    )
+    Git.checkout "master"
+    Git.checkout "rfc-#{rfc_number}"
 
-    puts md
-    break
+    last_name = nil
+    grouped_pages.each do |page|
+      next if page.bodyContents.first.body.strip == ""
+
+      puts "#{page.version}: #{page.title}"
+      filename = "#{page.title.parameterize}.md"
+
+      md = ReverseMarkdown.convert(
+        page.bodyContents.first.body,
+        unknown_tags: :bypass,
+        github_flavored: true,
+      )
+
+      Git.add(
+        old_name: last_name,
+        new_name: filename,
+        contents: md,
+        message: page.versionComment,
+        author: page.creator.name
+      )
+
+      last_name = filename
+    end
   end
+
+  Git.add_remote
+  Git.push_all
 end
 
