@@ -6,6 +6,7 @@ require 'active_support/core_ext/string/inflections'
 require_relative 'confluence_object'
 require_relative 'converters'
 require_relative 'git'
+require_relative 'github'
 require_relative 'rfc'
 
 class Parser
@@ -46,7 +47,7 @@ if __FILE__ == $0
 
   rfcs.each do |rfc|
     Git.checkout "master"
-    Git.checkout "rfc-#{rfc.number}"
+    Git.checkout rfc.branch
 
     rfc.pages_to_add.each do |page|
       Git.add(page)
@@ -55,5 +56,9 @@ if __FILE__ == $0
 
   Git.add_remote
   Git.push_all
+
+  rfcs.each do |rfc|
+    Github.create_pr(rfc.branch, rfc.title)
+  end
 end
 

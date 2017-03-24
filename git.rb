@@ -1,8 +1,8 @@
 class Git
-  class << self
-    PATHNAME = File.expand_path('output', '.')
-    REPOSITORY = 'https://github.com/boffbowsh/govuk-rfcs.git'
+  PATHNAME = File.expand_path('output', '.')
+  REPOSITORY = 'https://github.com/boffbowsh/govuk-rfcs.git'
 
+  class << self
     def init
       FileUtils.rm_rf PATHNAME
       FileUtils.mkdir_p PATHNAME

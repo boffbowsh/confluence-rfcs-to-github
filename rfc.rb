@@ -32,4 +32,12 @@ class RFC
       }
     end.compact
   end
+
+  def title
+    pages.last.title
+  end
+
+  def branch
+    "rfc-#{number}"
+  end
 end
