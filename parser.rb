@@ -6,6 +6,7 @@ require 'active_support/core_ext/string/inflections'
 require_relative 'confluence_object'
 require_relative 'converters'
 require_relative 'git'
+require_relative 'rfc'
 
 class Parser
   attr_reader :document
@@ -35,42 +36,20 @@ if __FILE__ == $0
 
   pages = parser.by_type('Page')
 
-  documents = pages
-    .group_by(&:originalVersionId)
+  documents = pages.group_by(&:originalVersionId)
 
-  documents.each do |original_id, grouped_pages|
-    next if original_id.to_i == 0
-    grouped_pages.sort_by! { |page| page.version.to_i }
+  rfcs = documents.map do |originalVersionId, grouped_pages|
+    next if originalVersionId.to_i == 0
+    rfc = RFC.new(grouped_pages)
+    rfc if rfc.number
+  end.compact
 
-    rfc_match = %r{^RFC.([0-9]+)}.match(grouped_pages.last.title)
-    next unless rfc_match
-    rfc_number = rfc_match[1]
-
+  rfcs.each do |rfc|
     Git.checkout "master"
-    Git.checkout "rfc-#{rfc_number}"
+    Git.checkout "rfc-#{rfc.number}"
 
-    last_name = nil
-    grouped_pages.each do |page|
-      next if page.bodyContents.first.body.strip == ""
-
-      puts "#{page.version}: #{page.title}"
-      filename = "#{page.title.parameterize}.md"
-
-      md = ReverseMarkdown.convert(
-        page.bodyContents.first.body,
-        unknown_tags: :bypass,
-        github_flavored: true,
-      )
-
-      Git.add(
-        old_name: last_name,
-        new_name: filename,
-        contents: md,
-        message: page.versionComment,
-        author: page.creator.name
-      )
-
-      last_name = filename
+    rfc.pages_to_add.each do |page|
+      Git.add(page)
     end
   end
 
