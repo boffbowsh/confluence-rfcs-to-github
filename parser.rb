@@ -41,6 +41,8 @@ if __FILE__ == $0
 
   rfcs = documents.map do |originalVersionId, grouped_pages|
     next if originalVersionId.to_i == 0
+    next if ARGV[0] && originalVersionId.to_i != ARGV[0].to_i
+
     grouped_pages << parser.by_id(originalVersionId)
     grouped_pages.uniq!
     rfc = RFC.new(grouped_pages, parser)
