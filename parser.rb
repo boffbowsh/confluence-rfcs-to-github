@@ -94,6 +94,15 @@ if __FILE__ == $0
         Github.create_pr_comment_reply(pr_number, comment_id, reply)
       end
     end
+
+    case rfc.status_action
+    when :close
+      puts "Closing PR"
+      Github.close_pr(pr_number)
+    when :merge
+      puts "Merging PR"
+      Github.merge_pr(pr_number)
+    end
   end
 end
 

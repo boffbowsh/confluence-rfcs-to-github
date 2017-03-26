@@ -33,6 +33,14 @@ class Github
       client.create_pull_request_comment_reply(REPOSITORY, pr, comment, comment_id)
     end
 
+    def close_pr(pr)
+      client.close_pull_request(REPOSITORY, pr)
+    end
+
+    def merge_pr(pr)
+      client.merge_pull_request(REPOSITORY, pr)
+    end
+
     private
     def client
       @client = begin

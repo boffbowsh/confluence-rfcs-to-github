@@ -130,4 +130,20 @@ class RFC
       }
     end.compact
   end
+
+  def status_text
+    md = markdown(pages.last)
+    md.each_line.detect { |s| s =~ /^status: / }.split[1].upcase
+  end
+
+  def status_action
+    case status_text
+    when %r{CLOSED|REJECTED}
+      :close
+    when %r{ACCEPTED|AGREED|APPROVED|COMPLETED?|PASSED}
+      :merge
+    else
+      :open
+    end
+  end
 end
