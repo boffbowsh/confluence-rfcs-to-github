@@ -47,6 +47,12 @@ notes: #{notes}
       "!!inline-comment-marker:#{node['ac-ref']}!!" + treat_children(node, state)
     end
   end
+
+  class Emoticon < ReverseMarkdown::Converters::Base
+    def convert(node, state={})
+      ":#{node['ac:name'].sub('-','')}:"
+    end
+  end
 end
 
 ReverseMarkdown::Converters.register "placeholder", ReverseMarkdown::Converters::Ignore.new
@@ -54,3 +60,4 @@ ReverseMarkdown::Converters.register "structured-macro", Converters::StructuredM
 ReverseMarkdown::Converters.register "user", Converters::UserLink.new
 ReverseMarkdown::Converters.register "inline-comment-marker", Converters::InlineComment.new
 ReverseMarkdown::Converters.register "code", Converters::Code.new
+ReverseMarkdown::Converters.register "emoticon", Converters::Emoticon.new
