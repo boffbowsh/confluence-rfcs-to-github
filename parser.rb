@@ -60,7 +60,15 @@ if __FILE__ == $0
   Git.push_all
 
   rfcs.each do |rfc|
-    Github.create_pr(rfc.branch, rfc.title)
+    begin
+      pr_number = Github.create_pr(rfc.branch, rfc.title)
+    rescue Octokit::UnprocessableEntity
+      pr_number = Github.pr_number(rfc.branch)
+    end
+
+    rfc.comments.each do |comment|
+      Github.add_comment(pr_number, comment)
+    end
   end
 end
 
