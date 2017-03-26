@@ -134,6 +134,8 @@ class RFC
   def status_text
     md = markdown(pages.last)
     md.each_line.detect { |s| s =~ /^status: / }.split[1].upcase
+  rescue
+    nil
   end
 
   def status_action
