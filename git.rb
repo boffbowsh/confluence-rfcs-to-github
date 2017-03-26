@@ -1,6 +1,7 @@
 class Git
   PATHNAME = File.expand_path('output', '.')
-  REPOSITORY = 'https://github.com/boffbowsh/govuk-rfcs.git'
+  REPOSITORY = ENV['REPOSITORY'] || 'https://github.com/alphagov/govuk-rfcs.git'
+  AUTHOR = ENV['AUTHOR'] || 'govuk-tech-members'
 
   class << self
     def init
@@ -17,7 +18,7 @@ class Git
       end
     end
 
-    def add(old_name: nil, new_name:, contents:, message: nil, author: 'paul.bowsher')
+    def add(old_name: nil, new_name:, contents:, message: nil, author: AUTHOR)
       if old_name && old_name != new_name
         git 'mv', old_name, new_name
       end
