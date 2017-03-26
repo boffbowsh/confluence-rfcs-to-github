@@ -55,6 +55,7 @@ class RFC
     @comments ||= begin
       root_comments = child_comments_map
         .keys
+        .reject { |c| c.property('parent').is_a? ConfluenceObject }
         .reject { |c| comment_is_inline? c }
 
       root_comments.map do |root_comment|
