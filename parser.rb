@@ -43,7 +43,7 @@ if __FILE__ == $0
     next if originalVersionId.to_i == 0
     grouped_pages << parser.by_id(originalVersionId)
     grouped_pages.uniq!
-    rfc = RFC.new(grouped_pages)
+    rfc = RFC.new(grouped_pages, parser)
     rfc if rfc.number
   end.compact
 

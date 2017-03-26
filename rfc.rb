@@ -1,7 +1,8 @@
 class RFC
-  attr_reader :pages
-  def initialize(pages)
+  attr_reader :pages, :parser
+  def initialize(pages, parser)
     @pages = pages.sort_by { |page| page.version.to_i }
+    @parser = parser
   end
 
   def number
@@ -40,6 +41,7 @@ class RFC
       page.bodyContents.first.body,
       unknown_tags: :bypass,
       github_flavored: true,
+      confluence_parser: parser
     )
   end
 

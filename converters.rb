@@ -25,7 +25,16 @@ notes: #{notes}
       ""
     end
   end
+
+  class UserLink < ReverseMarkdown::Converters::Base
+    def convert(node, state={})
+      parser = ReverseMarkdown.config.instance_variable_get(:@inline_options)[:confluence_parser]
+      user = parser.by_id(node['ri:userkey'])
+      user.name
+    end
+  end
 end
 
 ReverseMarkdown::Converters.register "placeholder", ReverseMarkdown::Converters::Ignore.new
 ReverseMarkdown::Converters.register "structured-macro", Converters::StructuredMacro.new
+ReverseMarkdown::Converters.register "user", Converters::UserLink.new
