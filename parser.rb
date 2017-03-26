@@ -33,7 +33,9 @@ if __FILE__ == $0
   parser = Parser.new
 
   Git.init
-  Git.add(new_name: '.gitkeep', contents: '', message: 'Initial commit')
+
+  readme = RFC.new([], parser).markdown(parser.by_id(23855388))
+  Git.add(new_name: 'README.md', contents: readme, message: 'Initial commit')
 
   pages = parser.by_type('Page')
 
