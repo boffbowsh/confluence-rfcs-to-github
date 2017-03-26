@@ -22,7 +22,7 @@ class RFC
 
       {
         old_name: old_name,
-        new_name: new_name,
+        new_name: old_name = new_name,
         contents: contents,
         message: page.versionComment,
         author: page.creator.name
