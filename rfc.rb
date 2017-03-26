@@ -1,5 +1,5 @@
 class RFC
-  attr_reader :pages, :parser
+  attr_reader :pages, :parser, :inline_comments
   def initialize(pages, parser)
     @pages = pages.sort_by { |page| page.version.to_i }
     @parser = parser
@@ -18,10 +18,12 @@ class RFC
 
       new_name = "#{page.title.parameterize}.md"
 
+      contents = parse_inline_comments!(markdown(page))
+
       {
         old_name: old_name,
         new_name: new_name,
-        contents: markdown(page),
+        contents: contents,
         message: page.versionComment,
         author: page.creator.name
       }
@@ -30,6 +32,10 @@ class RFC
 
   def title
     pages.last.title
+  end
+
+  def filename
+    "#{pages.last.title.parameterize}.md"
   end
 
   def branch
@@ -41,18 +47,20 @@ class RFC
       page.bodyContents.first.body,
       unknown_tags: :bypass,
       github_flavored: true,
-      confluence_parser: parser
+      confluence_parser: parser,
     )
   end
 
   def comments
-    root_comments = child_comments_map
-      .keys
-      .reject { |c| comment_is_inline? c }
+    @comments ||= begin
+      root_comments = child_comments_map
+        .keys
+        .reject { |c| comment_is_inline? c }
 
-    root_comments.map do |root_comment|
-      output_comment(root_comment)
-    end.flatten.compact
+      root_comments.map do |root_comment|
+        output_comment(root_comment)
+      end.flatten.compact
+    end
   end
 
   def output_comment(comment)
@@ -64,6 +72,7 @@ class RFC
 
   def child_comments_map
     @child_comments_map ||= pages.last.comments.inject({}) do |map, comment|
+      map[comment] ||= []
       if comment.property('parent').is_a? ConfluenceObject
         map[comment.parent] ||= []
         map[comment.parent] << comment
@@ -78,13 +87,46 @@ class RFC
     end
   end
 
-  def format_comment(comment)
-    string = %{<a name="confluence-comment-#{comment.id}">}
-    string += "By #{comment.creator.name} on #{comment.creationDate}\n"
-    if comment.parent.is_a? ConfluenceObject
-      string += "[in reply to #{comment.parent.creator.name}]"
-      string += "(#user-content-confluence-comment-#{comment.parent.id})\n"
+  def format_comment(comment, inline: false)
+    markdown = ""
+    markdown += %{<a name="confluence-comment-#{comment.id}">} unless inline
+    markdown += "By #{comment.creator.name} on #{comment.creationDate}\n"
+    if !inline && comment.parent.is_a?(ConfluenceObject)
+      markdown += "[in reply to #{comment.parent.creator.name}]"
+      markdown += "(#user-content-confluence-comment-#{comment.parent.id})\n"
     end
-    string += "\n#{markdown(comment)}"
+    markdown += "\n#{markdown(comment)}"
+  end
+
+  def parse_inline_comments!(markdown)
+    pattern = %r{!!inline-comment-marker:(.*)!!}
+    @inline_comment_lines = {}
+    markdown.each_line.with_index.map do |line, index|
+      if matches = pattern.match(line)
+        @inline_comment_lines[matches[1]] = index + 1
+      end
+      line.gsub(pattern, '')
+    end.join
+  end
+
+  def inline_comments
+    @inline_comments ||= child_comments_map.keys.select {|c| comment_is_inline?(c) }.map do |inline_comment|
+      prop = inline_comment
+        .contentProperties
+        .detect { |cp| cp.name == 'inline-marker-ref' }
+
+      next unless prop
+      ref = prop.stringValue
+
+      next unless @inline_comment_lines[ref]
+
+      replies = (child_comments_map[inline_comment] || []).sort_by(&:creationDate)
+
+      {
+        comment: format_comment(inline_comment),
+        line: @inline_comment_lines[ref],
+        replies: replies.map { |c| format_comment(c, inline: true) },
+      }
+    end.compact
   end
 end

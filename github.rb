@@ -21,6 +21,18 @@ class Github
       client.add_comment(REPOSITORY, pr, message)
     end
 
+    def pr_sha(pr)
+      client.pull_request(REPOSITORY, pr).head.sha
+    end
+
+    def create_pr_comment(pr, sha, filename, position, comment)
+      client.create_pull_request_comment(REPOSITORY, pr, comment, sha, filename, position).id
+    end
+
+    def create_pr_comment_reply(pr, comment_id, comment)
+      client.create_pull_request_comment_reply(REPOSITORY, pr, comment, comment_id)
+    end
+
     private
     def client
       @client = begin

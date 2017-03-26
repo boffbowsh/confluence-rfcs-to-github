@@ -33,8 +33,24 @@ notes: #{notes}
       user.name
     end
   end
+
+  class Code < ReverseMarkdown::Converters::Base
+    def convert(node, state = {})
+      xml = node.to_s.gsub(%r{<inline-comment-marker ac:ref="(.*)">}, '<inline-comment-marker>!!inline-comment-marker:\1!!')
+      node = Nokogiri::XML(xml)
+      "`#{node.text}`"
+    end
+  end
+
+  class InlineComment < ReverseMarkdown::Converters::Base
+    def convert(node, state={})
+      "!!inline-comment-marker:#{node['ac-ref']}!!" + treat_children(node, state)
+    end
+  end
 end
 
 ReverseMarkdown::Converters.register "placeholder", ReverseMarkdown::Converters::Ignore.new
 ReverseMarkdown::Converters.register "structured-macro", Converters::StructuredMacro.new
 ReverseMarkdown::Converters.register "user", Converters::UserLink.new
+ReverseMarkdown::Converters.register "inline-comment-marker", Converters::InlineComment.new
+ReverseMarkdown::Converters.register "code", Converters::Code.new
