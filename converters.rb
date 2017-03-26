@@ -1,12 +1,6 @@
 require 'reverse_markdown'
 
 module Converters
-  class Ignore < ReverseMarkdown::Converters::Base
-    def convert(node, state={})
-      ""
-    end
-  end
-
   class StructuredMacro < ReverseMarkdown::Converters::Base
     def convert(node, state={})
       if node['ac:name'] == 'info'
@@ -33,5 +27,5 @@ notes: #{notes}
   end
 end
 
-ReverseMarkdown::Converters.register "placeholder", Converters::Ignore.new
+ReverseMarkdown::Converters.register "placeholder", ReverseMarkdown::Converters::Ignore.new
 ReverseMarkdown::Converters.register "structured-macro", Converters::StructuredMacro.new
