@@ -18,7 +18,7 @@ class Git
       end
     end
 
-    def add(old_name: nil, new_name:, contents:, message: nil, author: AUTHOR)
+    def add(old_name: nil, new_name:, contents:, message: nil, author: AUTHOR, date:)
       if old_name && old_name != new_name
         git 'mv', old_name, new_name
       end
@@ -34,7 +34,7 @@ class Git
 
       author = "'#{author.sub('.', ' ').titleize} <#{author}@digital.cabinet-office.gov.uk>'"
 
-      git 'commit', '-F', t.path, '--author', author
+      git 'commit', '-F', t.path, '--author', author, '--date', "'#{date}'"
 
       t.unlink
     end

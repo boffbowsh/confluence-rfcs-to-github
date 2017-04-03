@@ -25,7 +25,8 @@ class RFC
         new_name: old_name = new_name,
         contents: contents,
         message: page.versionComment,
-        author: page.creator.name
+        author: page.creator.name,
+        date: page.lastModificationDate
       }
     end.compact
   end
