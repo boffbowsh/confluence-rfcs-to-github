@@ -26,7 +26,8 @@ class RFC
         contents: contents,
         message: page.versionComment,
         author: page.creator.name,
-        date: page.lastModificationDate
+        date: page.lastModificationDate,
+        page_id: page.id,
       }
     end.compact
   end

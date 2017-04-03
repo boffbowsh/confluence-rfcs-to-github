@@ -18,7 +18,7 @@ class Git
       end
     end
 
-    def add(old_name: nil, new_name:, contents:, message: nil, author: AUTHOR, date:)
+    def add(old_name: nil, new_name:, contents:, message: nil, author: AUTHOR, date: Time.now.to_s, page_id: nil)
       if old_name && old_name != new_name
         git 'mv', old_name, new_name
       end
@@ -28,6 +28,9 @@ class Git
 
       message = nil if message == ''
       message ||= "Update #{new_name}"
+
+      message << "\nOriginal url: https://gov-uk.atlassian.net/wiki/pages/viewpage.action?pageId=#{page_id}" if page_id
+
       t = Tempfile.new('message')
       t.write(message)
       t.close
