@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/keys'
+
 class Git
   PATHNAME = File.expand_path('output', '.')
   REPOSITORY = ENV['REPOSITORY'] || 'https://github.com/alphagov/govuk-rfcs.git'
@@ -11,7 +13,7 @@ class Git
     end
 
     def checkout(name)
-      if git 'rev-parse', name, silent: true
+      if git 'rev-parse', name
         git 'checkout', name
       else
         git 'checkout', '-b', name
@@ -35,9 +37,16 @@ class Git
       t.write(message)
       t.close
 
-      author = "'#{author.sub('.', ' ').titleize} <#{author}@digital.cabinet-office.gov.uk>'"
+      author_name = author.sub('.', ' ').titleize
+      author_email = "#{author}@digital.cabinet-office.gov.uk"
+      author_line = "'#{author_name} <#{author_email}>'"
 
-      git 'commit', '-F', t.path, '--author', author, '--date', "'#{date}'"
+      git 'commit',
+        '-F', t.path,
+        '--author', author_line,
+        '--date', "'#{date}'",
+        GIT_COMMITTER_NAME: author_name,
+        GIT_COMMITTER_EMAIL: author_email
 
       t.unlink
     end
@@ -51,14 +60,10 @@ class Git
     end
 
     private
-    def git(*args, silent: false)
+    def git(*args, **env)
       FileUtils.cd PATHNAME
       cmd = (['git'] + args.flatten).join(' ')
-      if silent
-        %x{#{cmd}}
-      else
-        system cmd
-      end
+      system env.stringify_keys, cmd
       $?.exitstatus == 0
     end
   end
