@@ -31,7 +31,7 @@ class Git
       message = nil if message == ''
       message ||= "Update #{new_name}"
 
-      message << "\nOriginal url: https://gov-uk.atlassian.net/wiki/pages/viewpage.action?pageId=#{page_id}" if page_id
+      message << "\n\nOriginal url: https://gov-uk.atlassian.net/wiki/pages/viewpage.action?pageId=#{page_id}" if page_id
 
       t = Tempfile.new('message')
       t.write(message)
