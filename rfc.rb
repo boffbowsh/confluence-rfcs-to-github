@@ -16,7 +16,7 @@ class RFC
     pages.map do |page|
       next if page.bodyContents.first.body.strip == ""
 
-      new_name = "#{page.title.parameterize}.md"
+      new_name = "#{page.title.parameterize}.md".sub(/^rfc-#{number}/, "rfc-#{number.rjust(3, '0')}")
 
       contents = parse_inline_comments!(markdown(page))
 
@@ -37,7 +37,7 @@ class RFC
   end
 
   def filename
-    "#{pages.last.title.parameterize}.md"
+    "#{pages.last.title.parameterize}.md".sub(/^rfc-#{number}/, "rfc-#{number.rjust(3, '0')}")
   end
 
   def branch
