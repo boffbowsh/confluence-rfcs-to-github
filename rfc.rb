@@ -8,7 +8,7 @@ class RFC
   def number
     rfc_match = %r{^RFC.([0-9]+)}.match(pages.last.title)
     return nil unless rfc_match
-    rfc_number = rfc_match[1]
+    rfc_match[1].to_i
   end
 
   def pages_to_add
@@ -16,7 +16,7 @@ class RFC
     pages.map do |page|
       next if page.bodyContents.first.body.strip == ""
 
-      new_name = "#{page.title.parameterize}.md".sub(/^rfc-#{number}/, "rfc-#{number.rjust(3, '0')}")
+      new_name = "#{page.title.parameterize}.md".sub(/^rfc-#{number}/, "rfc-#{number.to_s.rjust(3, '0')}")
 
       contents = parse_inline_comments!(markdown(page))
 
@@ -37,7 +37,7 @@ class RFC
   end
 
   def filename
-    "#{pages.last.title.parameterize}.md".sub(/^rfc-#{number}/, "rfc-#{number.rjust(3, '0')}")
+    "#{pages.last.title.parameterize}.md".sub(/^rfc-#{number}/, "rfc-#{number.to_s.rjust(3, '0')}")
   end
 
   def branch

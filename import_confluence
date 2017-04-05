@@ -19,6 +19,14 @@ if __FILE__ == $0
   readme = RFC.new([], parser).markdown(parser.by_id(23855388))
   Git.add(new_name: 'README.md', contents: readme, message: 'Initial commit')
 
+  Git.checkout 'dummy'
+  Git.add(new_name: '.dummy', contents: '', message: 'Dummy commit')
+
+  Git.checkout 'master'
+
+  Git.add_remote
+  Git.push_all
+
   pages = parser.by_type('Page')
 
   documents = pages.group_by(&:originalVersionId)
@@ -31,7 +39,7 @@ if __FILE__ == $0
     grouped_pages.uniq!
     rfc = RFC.new(grouped_pages, parser)
     rfc if rfc.number
-  end.compact
+  end.compact.sort_by(&:number)
 
   rfcs.each do |rfc|
     Git.checkout "master"
@@ -42,10 +50,13 @@ if __FILE__ == $0
     end
   end
 
-  Git.add_remote
   Git.push_all
 
   rfcs.each do |rfc|
+    while Github.next_available_pr_number < rfc.number
+      Github.create_empty_pr
+    end
+
     puts "Creating PR for RFC #{rfc.number}"
     begin
       pr_number = Github.create_pr(rfc.branch, rfc.title)

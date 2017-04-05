@@ -41,6 +41,24 @@ class Github
       client.merge_pull_request(REPOSITORY, pr)
     end
 
+    def next_available_pr_number
+      prs = client.pull_requests(REPOSITORY,
+        state: 'all',
+        sort: 'created',
+        direction: 'desc'
+      )
+
+      if prs.first
+        prs.first[:number].to_i + 1
+      else
+        1
+      end
+    end
+
+    def create_empty_pr
+      close_pr(create_pr('dummy', 'dummy'))
+    end
+
     private
     def client
       @client = begin
