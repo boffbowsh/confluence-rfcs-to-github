@@ -94,9 +94,11 @@ if __FILE__ == $0
     when :close
       puts "Closing PR"
       Github.close_pr(pr_number)
+      Github.delete_branch(rfc.branch)
     when :merge
       puts "Merging PR"
       Github.merge_pr(pr_number)
+      Github.delete_branch(rfc.branch)
     end
   end
 end

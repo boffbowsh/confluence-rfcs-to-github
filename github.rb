@@ -41,6 +41,10 @@ class Github
       client.merge_pull_request(REPOSITORY, pr)
     end
 
+    def delete_branch(branch)
+      client.delete_branch(REPOSITORY, branch)
+    end
+
     def next_available_pr_number
       prs = client.pull_requests(REPOSITORY,
         state: 'all',
