@@ -92,6 +92,8 @@ if __FILE__ == $0
       end
     end
 
+    next if rfc.number == 54
+
     case rfc.status_action
     when :close
       puts "Closing PR"
