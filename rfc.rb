@@ -1,3 +1,6 @@
+require 'yaml'
+require 'active_support/core_ext/hash/keys'
+
 class RFC
   attr_reader :pages, :parser, :inline_comments
   def initialize(pages, parser)
@@ -12,24 +15,28 @@ class RFC
   end
 
   def pages_to_add
-    old_name = nil
-    pages.map do |page|
-      next if page.bodyContents.first.body.strip == ""
+    @pages_to_add ||= begin
+      old_name = nil
+      pages.map do |page|
+        next if page.bodyContents.first.body.strip == ""
 
-      new_name = "#{page.title.parameterize}.md".sub(/^rfc-#{number}/, "rfc-#{number.to_s.rjust(3, '0')}")
+        new_name = "#{page.title.parameterize}.md".sub(/^rfc-#{number}/, "rfc-#{number.to_s.rjust(3, '0')}")
 
-      contents = parse_inline_comments!(markdown(page))
+        markdown, data = extract_yaml_frontmatter(markdown(page))
+        contents = parse_inline_comments!(markdown)
 
-      {
-        old_name: old_name,
-        new_name: old_name = new_name,
-        contents: contents,
-        message: page.versionComment,
-        author: page.creator.name,
-        date: page.lastModificationDate,
-        page_id: page.id,
-      }
-    end.compact
+        {
+          old_name: old_name,
+          new_name: old_name = new_name,
+          contents: contents,
+          message: page.versionComment,
+          author: page.creator.name,
+          date: page.lastModificationDate,
+          page_id: page.id,
+          data: data,
+        }
+      end.compact
+    end
   end
 
   def title
@@ -51,6 +58,18 @@ class RFC
       github_flavored: true,
       confluence_parser: parser,
     )
+  end
+
+  def extract_yaml_frontmatter(markdown)
+    data = {}
+    if markdown.each_line.first == "---\n"
+      re = %r{---\n(.*)---\n+}m
+      yaml = re.match(markdown)[1]
+      data = YAML.load(yaml).stringify_keys
+      markdown.gsub!(re, '')
+    end
+
+    [markdown, data]
   end
 
   def comments
@@ -134,10 +153,11 @@ class RFC
   end
 
   def status_text
-    md = markdown(pages.last)
-    md.each_line.detect { |s| s =~ /^status: / }.split[1].upcase
-  rescue
-    nil
+    pages_to_add.last[:data]["status"]
+  end
+
+  def notes
+    pages_to_add.last[:data]["notes"].blank? ? nil : pages_to_add.last[:data]["notes"]
   end
 
   def status_action

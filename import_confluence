@@ -3,6 +3,8 @@
 require 'bundler/setup'
 require 'reverse_markdown'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/hash/except'
+require 'active_support/core_ext/object/blank'
 
 require_relative 'confluence_object'
 require_relative 'converters'
@@ -46,7 +48,7 @@ if __FILE__ == $0
     Git.checkout rfc.branch
 
     rfc.pages_to_add.each do |page|
-      Git.add(page)
+      Git.add(page.except(:data))
     end
   end
 
@@ -93,10 +95,16 @@ if __FILE__ == $0
     case rfc.status_action
     when :close
       puts "Closing PR"
+      if rfc.notes
+        Github.add_comment(pr_number, "Closed with note: #{rfc.notes}")
+      end
       Github.close_pr(pr_number)
       Github.delete_branch(rfc.branch)
     when :merge
       puts "Merging PR"
+      if rfc.notes
+        Github.add_comment(pr_number, "Merged with note: #{rfc.notes}")
+      end
       Github.merge_pr(pr_number)
       Github.delete_branch(rfc.branch)
     end

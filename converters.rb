@@ -14,8 +14,8 @@ module Converters
 
         <<-EOF
 ---
-status: #{status}
-notes: #{notes}
+status: "#{status}"
+notes: "#{notes}"
 ---
         EOF
       else
