@@ -44,7 +44,7 @@ notes: "#{notes}"
 
   class InlineComment < ReverseMarkdown::Converters::Base
     def convert(node, state={})
-      "!!inline-comment-marker:#{node['ac-ref']}!!" + treat_children(node, state)
+      "!!inline-comment-marker:#{node['ac:ref']}!!" + treat_children(node, state)
     end
   end
 
