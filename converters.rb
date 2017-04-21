@@ -36,7 +36,7 @@ notes: "#{notes}"
 
   class Code < ReverseMarkdown::Converters::Base
     def convert(node, state = {})
-      xml = node.to_s.gsub(%r{<inline-comment-marker ac:ref="(.*)">}, '<inline-comment-marker>!!inline-comment-marker:\1!!')
+      xml = node.to_s.gsub(%r{<inline-comment-marker ac:ref="(.*?)">}, '<inline-comment-marker>!!inline-comment-marker:\1!!</inline-comment-marker>')
       node = Nokogiri::XML(xml)
       "`#{node.text}`"
     end
